@@ -19,6 +19,7 @@ Gazeboシミュレータ上の CRANE+ V2 ロボットアームに対し、カメ
 - **主な実装機能**:
   - `/camera/image_raw` トピックからカメラ画像を取得し、`cv_bridge` 経由でOpenCVのHSV色空間処理を実施
   - 赤色および青色の判定ピクセル数を算出し、判定フラグを動的に更新
+  - **入力柔軟性**: Gazeboシミュレータ上のカメラ映像からのリアルタイム自動認識に加え、テストコマンドによる仮想トピック配信（トリガーコマンド）の双方からシームレスに動作・検証が可能
   - **赤色検出時**: 台座回転（`crane_plus_joint1`）を中心とした**左右横振りウェーブ動作（約20秒間）**を実行
   - **青色検出時**: 各関節連動（`joint2`〜`joint4`）による**上下お辞儀・うなずき動作（約20秒間）**を実行
 
@@ -77,6 +78,24 @@ source ~/pai_ws/install/setup.bash
 ros2 run physicalai_pubsub action_publisher
 ```
 
-### Step 4: 動作確認
+### Step 4: 動作確認（カメラ認識 または トリガーコマンド）
 
-Gazebo上のカメラ視界内に赤色または青色のオブジェクトを配置するか、`/camera/image_raw` トピックに色信号が流れると、判定された色に応じて20秒間の異なるモーション（赤：横振りウェーブ / 青：上下お辞儀）が自動実行されます。
+本ノードは**「カメラ映像からの自動応答」**と**「トリガーコマンドによる手動検証」**のどちらからでも動作させることができます。
+
+#### ① Gazebo上のカメラ画像による動作確認
+Gazeboシミュレータ内でカメラの視界に赤色または青色のオブジェクトを配置すると、リアルタイムに色を判別して対応するモーションが実行されます。
+
+#### ② トリガーコマンド（仮想カラー信号）による動作確認
+**【ターミナル 3】** 以下のコマンドを実行して擬似的なカラー画像をトピックに直接パブリッシュし、各動作を即座に検証・再現できます。
+
+- **赤色トリガーコマンド（横振りウェーブ動作：約20秒間）**
+  ```bash
+  source ~/pai_ws/install/setup.bash
+  python3 -c "import rclpy, cv2, numpy as np; from cv_bridge import CvBridge; from sensor_msgs.msg import Image; rclpy.init(); node = rclpy.create_node('test_pub'); pub = node.create_publisher(Image, '/camera/image_raw', 10); img = np.full((100,100,3), (0,0,255), dtype=np.uint8); msg = CvBridge().cv2_to_imgmsg(img, encoding='bgr8'); pub.publish(msg); print('Sent RED test image'); rclpy.shutdown()"
+  ```
+
+- **青色トリガーコマンド（上下お辞儀動作：約20秒間）**
+  ```bash
+  source ~/pai_ws/install/setup.bash
+  python3 -c "import rclpy, cv2, numpy as np; from cv_bridge import CvBridge; from sensor_msgs.msg import Image; rclpy.init(); node = rclpy.create_node('test_pub'); pub = node.create_publisher(Image, '/camera/image_raw', 10); img = np.full((100,100,3), (255,0,0), dtype=np.uint8); msg = CvBridge().cv2_to_imgmsg(img, encoding='bgr8'); pub.publish(msg); print('Sent BLUE test image'); rclpy.shutdown()"
+  ```
