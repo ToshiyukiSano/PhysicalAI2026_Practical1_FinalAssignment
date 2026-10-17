@@ -43,20 +43,23 @@ PhysicalAI2026_Practical1_FinalAssignment/
 
 ## 🚀 セットアップおよび動作確認手順
 
-### Step 1: リポジトリのクローンとビルド
+### Step 1: ROS 2環境の読み込みとリポジトリのビルド
 
-ワークスペースの `src` ディレクトリにクローンし、パッケージをビルドします。
+ROS 2環境をセットアップし、ワークスペースの `src` ディレクトリにクローンしてビルドします。
 
 ```bash
-# ROS 2 ワークスペースの src ディレクトリへ移動
-cd ~/pai_ws/src
+# 1. ROS 2 ベース環境の読み込み
+source /opt/ros/humble/setup.bash
 
-# リポジトリのクローン
+# 2. ワークスペースの src ディレクトリへ移動してクローン
+cd ~/pai_ws/src
 git clone https://github.com/ToshiyukiSano/PhysicalAI2026_Practical1_FinalAssignment.git
 
-# ワークスペース直下に戻りビルドとセットアップファイルの読み込み
+# 3. ワークスペース直下に戻りビルドを実行（ビルド後に install/setup.bash が生成されます）
 cd ~/pai_ws
 colcon build --symlink-install --packages-select physicalai_pubsub
+
+# 4. ビルド成果物の環境変数を読み込み
 source install/setup.bash
 ```
 
@@ -65,6 +68,7 @@ source install/setup.bash
 **【ターミナル 1】** CRANE+ V2 の Gazebo シミュレーション環境を立ち上げます。
 
 ```bash
+source /opt/ros/humble/setup.bash
 source ~/pai_ws/install/setup.bash
 ros2 launch crane_plus_gazebo crane_plus_with_table.launch.py
 ```
@@ -74,6 +78,7 @@ ros2 launch crane_plus_gazebo crane_plus_with_table.launch.py
 **【ターミナル 2】** 新しいターミナルを開き、実装した色判定・アクション制御ノードを起動します。
 
 ```bash
+source /opt/ros/humble/setup.bash
 source ~/pai_ws/install/setup.bash
 ros2 run physicalai_pubsub action_publisher
 ```
@@ -90,12 +95,14 @@ Gazeboシミュレータ内でカメラの視界に赤色または青色のオ�
 
 - **赤色トリガーコマンド（横振りウェーブ動作：約20秒間）**
   ```bash
+  source /opt/ros/humble/setup.bash
   source ~/pai_ws/install/setup.bash
   python3 -c "import rclpy, cv2, numpy as np; from cv_bridge import CvBridge; from sensor_msgs.msg import Image; rclpy.init(); node = rclpy.create_node('test_pub'); pub = node.create_publisher(Image, '/camera/image_raw', 10); img = np.full((100,100,3), (0,0,255), dtype=np.uint8); msg = CvBridge().cv2_to_imgmsg(img, encoding='bgr8'); pub.publish(msg); print('Sent RED test image'); rclpy.shutdown()"
   ```
 
 - **青色トリガーコマンド（上下お辞儀動作：約20秒間）**
   ```bash
+  source /opt/ros/humble/setup.bash
   source ~/pai_ws/install/setup.bash
   python3 -c "import rclpy, cv2, numpy as np; from cv_bridge import CvBridge; from sensor_msgs.msg import Image; rclpy.init(); node = rclpy.create_node('test_pub'); pub = node.create_publisher(Image, '/camera/image_raw', 10); img = np.full((100,100,3), (255,0,0), dtype=np.uint8); msg = CvBridge().cv2_to_imgmsg(img, encoding='bgr8'); pub.publish(msg); print('Sent BLUE test image'); rclpy.shutdown()"
   ```
