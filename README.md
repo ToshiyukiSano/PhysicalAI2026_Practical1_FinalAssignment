@@ -36,3 +36,47 @@ PhysicalAI2026_Practical1_FinalAssignment/
     └── physicalai_pubsub/
         ├── __init__.py
         └── action_publisher.py
+```
+
+---
+
+## 🚀 セットアップおよび動作確認手順
+
+### Step 1: リポジトリのクローンとビルド
+
+ワークスペースの `src` ディレクトリにクローンし、パッケージをビルドします。
+
+```bash
+# ROS 2 ワークスペースの src ディレクトリへ移動
+cd ~/pai_ws/src
+
+# リポジトリのクローン
+git clone https://github.com/ToshiyukiSano/PhysicalAI2026_Practical1_FinalAssignment.git
+
+# ワークスペース直下に戻りビルドとセットアップファイルの読み込み
+cd ~/pai_ws
+colcon build --symlink-install --packages-select physicalai_pubsub
+source install/setup.bash
+```
+
+### Step 2: シミュレータ（Gazebo）の起動
+
+**【ターミナル 1】** CRANE+ V2 の Gazebo シミュレーション環境を立ち上げます。
+
+```bash
+source ~/pai_ws/install/setup.bash
+ros2 launch crane_plus_gazebo crane_plus_with_table.launch.py
+```
+
+### Step 3: 制御ノード（action_publisher）の起動
+
+**【ターミナル 2】** 新しいターミナルを開き、実装した色判定・アクション制御ノードを起動します。
+
+```bash
+source ~/pai_ws/install/setup.bash
+ros2 run physicalai_pubsub action_publisher
+```
+
+### Step 4: 動作確認
+
+Gazebo上のカメラ視界内に赤色または青色のオブジェクトを配置するか、`/camera/image_raw` トピックに色信号が流れると、判定された色に応じて20秒間の異なるモーション（赤：横振りウェーブ / 青：上下お辞儀）が自動実行されます。
